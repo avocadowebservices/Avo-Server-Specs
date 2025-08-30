@@ -52,6 +52,9 @@ A: Nope. Only runs in the dashboard, fetches only what’s needed, no external A
 **Q: Does it work on any host?**  
 A: Yes! Shows true server info as best it can detect. At this time, we are having issues to show on AWS instances, we'll have the fix ASAP.
 
+**Q: Why does CPU Load say 'Unavailable' on AWS?**  
+A: Some AWS environments don’t allow access to system CPU info, so this stat isn’t available. You’ll see this on Lightsail, Lambda, and some EC2 setups. This is normal and doesn’t affect your site!
+
 **Q: Can I customize the colors or add my logo?**  
 A: Fork this repo or suggest a feature!
 

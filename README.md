@@ -49,8 +49,8 @@ Get **live server stats**—with clean pie charts, real-time clock, and essentia
 **Q: Does it slow down my site?**  
 A: Nope. Only runs in the dashboard, fetches only what’s needed, no external APIs except to get your public IP.
 
-**Q: Does it work on AWS/Cloudflare/any host?**  
-A: Yes! Shows true server info as best it can detect.
+**Q: Does it work on any host?**  
+A: Yes! Shows true server info as best it can detect. At this time, we are having issues to show on AWS instances, we'll have the fix ASAP.
 
 **Q: Can I customize the colors or add my logo?**  
 A: Fork this repo or suggest a feature!

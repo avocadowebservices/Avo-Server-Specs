@@ -34,7 +34,9 @@ add_action('wp_dashboard_setup', function () {
     }
 
     wp_add_dashboard_widget('avo_server_stats', 'Server Specs', function () use ($wpdb) {
+        // Hostname, Server IP, Local IP, Public IP
         $hostname = gethostname() ?: ($_SERVER['SERVER_NAME'] ?? 'Unknown');
+        $server_ip = gethostbyname($hostname);
         $local_ip = $_SERVER['SERVER_ADDR'] ?? 'Unavailable';
         $public_ip = @file_get_contents('https://api.ipify.org');
         if (!$public_ip || !filter_var($public_ip, FILTER_VALIDATE_IP)) $public_ip = 'Unavailable';
@@ -82,11 +84,22 @@ add_action('wp_dashboard_setup', function () {
 
         $php_memory = avo_size($used_mem) . ' / ' . avo_size($max_mem);
 
+        // CPU Load detection, AWS/Lightsail fallback warning
         $cpu = 'Unavailable';
         if (function_exists('sys_getloadavg')) {
             $load = sys_getloadavg();
-            $cpu = implode(' / ', array_map(function($l){return round($l,2);}, $load));
+            if (!empty($load)) {
+                $cpu = implode(' / ', array_map(function($l){return round($l,2);}, $load));
+            }
         }
+        // Fallback: If not available and possibly on AWS, show custom note
+        $aws_env = getenv('AWS_EXECUTION_ENV') || stripos($software, 'Amazon') !== false;
+        if ($cpu === 'Unavailable' && $aws_env) {
+            $cpu = '<span title="This is a known AWS cloud hosting limitation.">Not available on AWS hosting</span>';
+        } elseif ($cpu === 'Unavailable') {
+            $cpu = '<span title="Not available in this environment.">Unavailable</span>';
+        }
+
         ?>
         <style>
         .avo-server-specs-grid {
@@ -115,9 +128,10 @@ add_action('wp_dashboard_setup', function () {
             Server Specs as of: <span id="avo-live-clock"></span>
         </div>
         <div class="avo-server-specs-grid">
-            <!-- Top Row: IPs | Uptime/Software/System -->
+            <!-- Top Row: Hostname/IPs | Uptime/Software/System -->
             <div>
-                <div class="avo-server-specs-label">Server IP:</div> <?= htmlspecialchars($hostname) ?><br>
+                <div class="avo-server-specs-label">Hostname:</div> <?= htmlspecialchars($hostname) ?><br>
+                <div class="avo-server-specs-label">Server IP:</div> <?= htmlspecialchars($server_ip) ?><br>
                 <div class="avo-server-specs-label">Local IP:</div> <?= htmlspecialchars($local_ip) ?><br>
                 <div class="avo-server-specs-label">Public IP:</div> <?= htmlspecialchars($public_ip) ?>
             </div>
@@ -135,7 +149,7 @@ add_action('wp_dashboard_setup', function () {
             </div>
             <div>
                 <div class="avo-server-specs-label">PHP Memory:</div> <?= htmlspecialchars($php_memory) ?><br>
-                <div class="avo-server-specs-label" style="margin-top:8px;">CPU Load:</div> <?= htmlspecialchars($cpu) ?>
+                <div class="avo-server-specs-label" style="margin-top:8px;">CPU Load:</div> <?= $cpu ?>
             </div>
             <div class="avo-server-specs-section"></div>
             <!-- Disk Usage Row -->

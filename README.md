@@ -6,7 +6,7 @@ Built by [AvocadoWeb Services LLC](https://avocadoweb.net) for the community.
 
 ---
 
-![screenshot](assets/screenshot-1.png)
+![screenshot](server-specs.png)
 
 ## ✨ Features
 

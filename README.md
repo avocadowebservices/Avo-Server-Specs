@@ -20,7 +20,7 @@ Built by [AvocadoWeb Services LLC](https://avocadoweb.net) for the community.
 ## 🚀 Quick Start
 
 1. Download or clone this repo.
-2. Upload `avo-server-specs` to your `/wp-content/plugins/` directory.
+2. Upload `avo-server-dashboard-widget` to your `/wp-content/plugins/` directory.
 3. Activate via WordPress Admin > Plugins.
 4. See your new **Server Specs** widget in the WP Dashboard!
 
@@ -41,14 +41,14 @@ Here’s where we’re headed next—**future premium add-ons and updates (comin
 - White-label and custom branding.
 - Custom color themes.
 - More chart options and advanced stats.
-- And… anything you request! [Open an issue](https://github.com/avocadowebservices/avo-server-specs/issues) or [start a discussion](https://github.com/avocadowebservices/avo-server-specs/discussions).
+- And… anything you request! [Open an issue](https://github.com/avocadowebservices/avo-server-dashboard-widget/issues) or [start a discussion](https://github.com/avocadowebservices/avo-server-dashboard-widget/discussions).
 
 **The free version will always be useful, clean, and uncrippled.**  
 Premium is for agencies, advanced users, and those who want a little extra magic.
 
 ## 📦 What’s Included?
 
-- One-file plugin: `avo-server-specs.php`
+- One-file plugin: `avo-server-dashboard-widget.php`
 - Screenshots: `/assets`
 - No settings page, no extra database bloat. Just activate and go.
 

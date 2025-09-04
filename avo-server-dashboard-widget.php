@@ -1,11 +1,18 @@
 <?php
-/*
-Plugin Name: AvocadoWeb Server Specs Dashboard Widget
-Description: Clean, visual server stats for your WP Dashboard with live clock, disk/RAM pie charts, and more. Created by AvocadoWeb Services.
-Version: 1.0.0
-Author: Joseph Brzezowski / AvocadoWeb Services LLC
-License: MIT
-*/
+/**
+ * Plugin Name: Avo Server Dashboard Widget
+ * Plugin URI:  https://github.com/avocadowebservices/avo-server-dashboard-widget.php
+ * Description: Clean, visual server stats for your WordPress Dashboard—live clock, disk/RAM pie charts, server details, database info, and more. Built by AvocadoWeb Services LLC.
+ * Version:     1.0.0
+ * Author:      Joseph Brzezowski
+ * Author URI:  https://avocadoweb.net/
+ * License:     MIT
+ * License URI: https://opensource.org/licenses/MIT
+ * Text Domain: avo-server-specs
+ * Requires at least: 6.0
+ * Tested up to: 6.8.2
+ * Stable tag: 1.0.0
+ */
 
 add_action('wp_dashboard_setup', function () {
     global $wpdb;

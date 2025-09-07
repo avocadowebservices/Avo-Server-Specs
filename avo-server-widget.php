@@ -5,7 +5,7 @@
  * Description: Clean, visual server stats for your WordPress Dashboard—live clock, disk/RAM pie charts, server details, database info, and more. Built by AvocadoWeb Services LLC.
  * Version:     1.0.0
  * Author:      Joseph Brzezowski
- * Author URI:  https://github.com/avocadowebservices/avo-server-dashboard-widget
+ * Author URI:  https://github.com/avocadowebservices/avo-server-widget
  * License:     MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: avo-server-specs

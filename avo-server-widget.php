@@ -1,18 +1,30 @@
 <?php
 /**
  * Plugin Name: Avo Server Widget
- * Plugin URI:  https://github.com/avocadowebservices/avo-server-widget.php
+ * Plugin URI:  https://github.com/avocadowebservices/avo-server-widget
  * Description: Clean, visual server stats for your WordPress Dashboard—live clock, disk/RAM pie charts, server details, database info, and more. Built by AvocadoWeb Services LLC.
  * Version:     1.0.0
  * Author:      Joseph Brzezowski
- * Author URI:  https://github.com/avocadowebservices/avo-server-widget
+ * Author URI:  https://avocadoweb.net/
  * License:     MIT
  * License URI: https://opensource.org/licenses/MIT
- * Text Domain: avo-server-specs
+ * Text Domain: avo-server-widget
  * Requires at least: 6.0
  * Tested up to: 6.8.2
  * Stable tag: 1.0.0
  */
+
+// Enqueue Chart.js for dashboard only, locally
+add_action('admin_enqueue_scripts', function($hook) {
+    if ($hook !== 'index.php') return; // only dashboard
+    wp_enqueue_script(
+        'avo-server-widget-chartjs',
+        plugins_url('js/chart.umd.min.js', __FILE__),
+        array(),
+        '4.4.1',
+        true
+    );
+});
 
 add_action('wp_dashboard_setup', function () {
     global $wpdb;
@@ -130,7 +142,6 @@ add_action('wp_dashboard_setup', function () {
         }
         .avo-server-specs-pie-wrap { display:flex; align-items:center; gap:8px; }
         </style>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
         <div style="font-size:18px;font-weight:bold;margin-bottom:14px;">
             Server Specs as of: <span id="avo-live-clock"></span>
         </div>

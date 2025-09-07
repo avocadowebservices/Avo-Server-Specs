@@ -1,4 +1,4 @@
-# 🥑 Avo Server Specs Dashboard Widget
+# 🥑 Avo Server Widget
 
 Clean, visual server stats for your WordPress Dashboard—right where you need them.  
 **Live charts. Real-time clock. Instant peace of mind.**  

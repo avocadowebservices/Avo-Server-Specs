@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Avo Server Dashboard Widget
- * Plugin URI:  https://github.com/avocadowebservices/avo-server-dashboard-widget.php
+ * Plugin Name: Avo Server Widget
+ * Plugin URI:  https://github.com/avocadowebservices/avo-server-widget.php
  * Description: Clean, visual server stats for your WordPress Dashboard—live clock, disk/RAM pie charts, server details, database info, and more. Built by AvocadoWeb Services LLC.
  * Version:     1.0.0
  * Author:      Joseph Brzezowski
- * Author URI:  https://avocadoweb.net/
+ * Author URI:  https://github.com/avocadowebservices/avo-server-dashboard-widget
  * License:     MIT
  * License URI: https://opensource.org/licenses/MIT
  * Text Domain: avo-server-specs

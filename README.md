@@ -49,6 +49,7 @@ Premium is for agencies, advanced users, and those who want a little extra magic
 ## 📦 What’s Included?
 
 - One-file plugin: `avo-server-widget.php`
+- One chart.umd.min JS file in /js/ folder
 - Screenshots: `/assets`
 - No settings page, no extra database bloat. Just activate and go.
 

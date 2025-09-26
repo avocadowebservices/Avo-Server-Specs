@@ -1,12 +1,19 @@
-# 🥑 Avo Server Widget
+# 🟩 Avo Server Widget
 
-Clean, visual server stats for your WordPress Dashboard—right where you need them.  
-**Live charts. Real-time clock. Instant peace of mind.**  
-Built by [AvocadoWeb Services LLC](https://avocadoweb.net) for the community.
+[![Download on WordPress.org](https://img.shields.io/wordpress/plugin/v/avo-server-widget.svg?label=Download%20from%20WP.org)](https://wordpress.org/plugins/avo-server-widget/)
+[![MIT License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![Support my work](https://img.shields.io/badge/donate-Buy%20Me%20A%20Coffee-yellow?logo=buymeacoffee&style=flat)](https://www.buymeacoffee.com/avocadowebservices)
+
+**Clean, visual server stats for your WordPress Dashboard—right where you need them.**  
+Live charts, real-time clock, instant peace of mind.
+
+Built by [AvocadoWeb Services LLC](https://avocadoweb.net) • For the Deaf, by the Deaf, for everyone.
 
 ---
 
-![screenshot](server-specs.png)
+![Server Specs Widget Screenshot](server-specs.png)
+
+---
 
 ## ✨ Features
 
@@ -15,65 +22,80 @@ Built by [AvocadoWeb Services LLC](https://avocadoweb.net) for the community.
 - **Server Details:** Hostname, server IP, local/public IPs, uptime, OS, web server.
 - **WordPress & Database Info:** WP version, database version, SQL version.
 - **CPU Load:** System load averages (shows 'Not available on AWS' if cloud-restricted).
-- **No bloat, no tracking, no nags:** Just pure dashboard insight.
+- **Zero bloat, zero tracking, zero nags.** Just pure dashboard insight.
+
+---
 
 ## 🚀 Quick Start
 
 1. Download or clone this repo.
 2. Upload `avo-server-widget` to your `/wp-content/plugins/` directory.
-3. Activate via WordPress Admin > Plugins.
-4. See your new **Server Specs** widget in the WP Dashboard!
-
-## 🙌 Free and Open
-
-This plugin is 100% free and open source.  
-Enjoy it, use it on client sites, and share it with the world.
-
-## 🛣️ Future Plans & Pro Features
-
-We believe in *building together.*  
-Here’s where we’re headed next—**future premium add-ons and updates (coming soon!):**
-
-- Email, Slack, or Discord alerts for high CPU or low disk.
-- PDF and email weekly reports.
-- Uptime and status integration.
-- Multi-site/network mode for agencies.
-- White-label and custom branding.
-- Custom color themes.
-- More chart options and advanced stats.
-- And… anything you request! [Open an issue](https://github.com/avocadowebservices/avo-server-widget/issues) or [start a discussion](https://github.com/avocadowebservices/avo-server-widget/discussions).
-
-**The free version will always be useful, clean, and uncrippled.**  
-Premium is for agencies, advanced users, and those who want a little extra magic.
-
-## 📦 What’s Included?
-
-- One-file plugin: `avo-server-widget.php`
-- One chart.umd.min JS file in /js/ folder
-- Screenshots: `/assets`
-- No settings page, no extra database bloat. Just activate and go.
-
-## 🙋 FAQ
-
-**Q: Why does CPU Load say 'Not available on AWS'?**  
-A: Some AWS and cloud hosts don’t provide system CPU info due to virtualization or security. The widget detects this and shows a friendly note.
-
-**Q: Can I suggest features?**  
-A: Please do! Use GitHub issues or discussions.
-
-**Q: Can I use this for clients, agencies, or on unlimited sites?**  
-A: Yes, forever—MIT licensed.
-
-## ❤️ Credits
-
-Made with care by Joseph Brzezowski,  
-Founder of [AvocadoWeb Services LLC](https://avocadoweb.net).
-
-For the Deaf, by the Deaf, for everyone who loves a good dashboard.
+3. Activate via **WordPress Admin > Plugins**.
+4. See your new **Server Specs** widget on the Dashboard!
 
 ---
 
-**MIT License.**  
+## 🎁 What’s Included?
+
+- `avo-server-widget.php` — one-file plugin, clean and self-contained
+- `/assets/js/chart.umd.min.js` — chart library
+- `/assets/css/avo-server-widget.css` — clean dashboard styling
+- Screenshots: `/server-specs.png` (demo)
+
+No settings page. No database bloat. Just activate and go.
+
+---
+
+## 🛣️ Roadmap & Pro Features
+
+We believe in building together.
+
+Planned (future) add-ons and premium features:
+
+- Alerts (Email, Slack, Discord) for CPU/disk/memory spikes
+- Scheduled PDF/email reports
+- Uptime & status monitoring integrations
+- Multi-site/network dashboard
+- White-label & custom branding
+- Custom color themes
+- Advanced charting, stats & export
+- **Feature request?** [Open an issue](https://github.com/avocadowebservices/avo-server-widget/issues) or [start a discussion](https://github.com/avocadowebservices/avo-server-widget/discussions).
+
+*The free version will always be useful, clean, and uncrippled.*
+
+---
+
+## 🙋 FAQ
+
+**Q: Why does CPU Load say “Not available on AWS”?**  
+A: Some cloud/VM hosts restrict CPU info. The widget detects this and explains it.
+
+**Q: Can I use this on unlimited sites or for clients?**  
+A: Absolutely. MIT licensed, forever.
+
+**Q: How can I suggest features or contribute?**  
+A: [Open an issue](https://github.com/avocadowebservices/avo-server-widget/issues), [discuss ideas](https://github.com/avocadowebservices/avo-server-widget/discussions), or send a pull request!
+
+---
+
+## ❤️ Support This Plugin
+
+If you find this plugin useful,  
+[Buy Me a Coffee](https://www.buymeacoffee.com/avocadowebservices) — it keeps everything free and maintained.
+
+---
+
+## 📝 License
+
+MIT License.  
 No bloat, no nags, no fake scarcity.  
 Just WordPress, made better.
 
+---
+
+**Made with care by Joseph Brzezowski**  
+Founder, [AvocadoWeb Services LLC](https://avocadoweb.net)
+
+> For the Deaf, by the Deaf, for everyone who loves a proper dashboard.
+
+---

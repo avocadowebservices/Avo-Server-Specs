@@ -1,259 +1,149 @@
 <?php
-/**
- * Plugin Name: Avo Server Widget
- * Plugin URI:  https://github.com/avocadowebservices/avo-server-widget
- * Description: Clean, visual server stats for your WordPress Dashboard—live clock, disk/RAM pie charts, server details, database info, and more. Built by AvocadoWeb Services LLC.
- * Version:     1.0.0
- * Author:      Joseph Brzezowski
- * Author URI:  https://avocadoweb.net/
- * License:     MIT
- * License URI: https://opensource.org/licenses/MIT
- * Text Domain: avo-server-widget
- * Requires at least: 6.0
- * Tested up to: 6.8.2
- * Stable tag: 1.0.0
- */
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-// Enqueue Chart.js for dashboard only, locally
-add_action('admin_enqueue_scripts', function($hook) {
-    if ($hook !== 'index.php') return; // only dashboard
+/*
+Plugin Name: Avo Server Widget
+Plugin URI:  https://github.com/avocadowebservices/avo-server-widget
+Description: Clean, visual server stats for your WordPress Dashboard—live clock, disk/RAM pie charts, server details, database info, and more. Built by AvocadoWeb Services LLC.
+Version:     1.0.1
+Author:      Joseph Brzezowski
+Author URI:  https://avocadoweb.net/
+License:     MIT
+License URI: https://opensource.org/licenses/MIT
+Text Domain: avo-server-widget
+Requires at least: 6.0
+*/
+
+add_action('wp_dashboard_setup', 'avo_server_specs_dashboard_widget');
+add_action('admin_enqueue_scripts', 'avo_server_widget_admin_assets');
+
+/**
+ * Enqueue JS and CSS for the dashboard widget.
+ */
+function avo_server_widget_admin_assets($hook) {
+    if ($hook !== 'index.php') return; // Only on dashboard
+
+    // Chart.js (local)
     wp_enqueue_script(
-        'avo-server-widget-chartjs',
-        plugins_url('js/chart.umd.min.js', __FILE__),
+        'avo-server-chartjs',
+        plugins_url('assets/js/chart.umd.min.js', __FILE__),
         array(),
         '4.4.1',
         true
     );
-});
 
-add_action('wp_dashboard_setup', function () {
-    global $wpdb;
+    // Your own logic, e.g., chart setup, live clock, etc. (local file)
+    wp_enqueue_script(
+        'avo-server-widget',
+        plugins_url('assets/js/avo-server-widget.js', __FILE__),
+        array('avo-server-chartjs'),
+        '1.0.1',
+        true
+    );
 
-    function avo_size($bytes) {
-        if ($bytes > 1099511627776) return round($bytes/1099511627776,2).' TB';
-        if ($bytes > 1073741824) return round($bytes/1073741824,2).' GB';
-        if ($bytes > 1048576) return round($bytes/1048576,2).' MB';
-        if ($bytes > 1024) return round($bytes/1024,2).' KB';
-        return $bytes.' B';
+    // Styles
+    wp_enqueue_style(
+        'avo-server-widget',
+        plugins_url('assets/css/avo-server-widget.css', __FILE__),
+        array(),
+        '1.0.1'
+    );
+}
+
+function avo_server_specs_dashboard_widget() {
+    wp_add_dashboard_widget(
+        'avo_server_specs_widget',
+        esc_html__('Server Specs', 'avo-server-widget'),
+        'avo_server_specs_widget_content'
+    );
+}
+
+function avo_server_specs_widget_content() {
+    // Gather all server data, sanitize and escape
+    $hostname   = gethostname() ?: ( isset($_SERVER['SERVER_NAME']) ? sanitize_text_field($_SERVER['SERVER_NAME']) : 'Unknown' );
+    $server_ip  = gethostbyname($hostname);
+    $local_ip   = isset($_SERVER['SERVER_ADDR']) ? sanitize_text_field($_SERVER['SERVER_ADDR']) : 'Unavailable';
+    $software   = isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field($_SERVER['SERVER_SOFTWARE']) : 'Unknown';
+    $system     = php_uname('s') . ' ' . php_uname('r');
+    $php_memory = ini_get('memory_limit');
+    $wp_version = get_bloginfo('version');
+
+    // Get public IP using WP HTTP API (no file_get_contents!)
+    $public_ip = 'Unavailable';
+    $response = wp_remote_get('https://api.ipify.org');
+    if ( !is_wp_error($response) ) {
+        $body = wp_remote_retrieve_body($response);
+        $public_ip = sanitize_text_field($body);
     }
-    function avo_real_memory_usage() {
-        $meminfo = @file_get_contents('/proc/meminfo');
-        if ($meminfo) {
-            preg_match('/MemTotal:\s+(\\d+) kB/', $meminfo, $total);
-            preg_match('/MemAvailable:\s+(\\d+) kB/', $meminfo, $avail);
-            if ($total && $avail) {
-                $used = $total[1] - $avail[1];
-                return [
-                    'used' => $used,
-                    'total' => $total[1]
-                ];
-            }
-        }
-        return false;
+
+    // RAM
+    $ram_total = (int) @shell_exec("awk '/MemTotal/ {print $2}' /proc/meminfo");
+    $ram_free  = (int) @shell_exec("awk '/MemAvailable/ {print $2}' /proc/meminfo");
+    $ram_used  = $ram_total > 0 ? $ram_total - $ram_free : 0;
+    $ram_percent = $ram_total > 0 ? round($ram_used / $ram_total * 100) : 0;
+    $real_ram = ($ram_total > 0);
+
+    // Disk
+    $disk_total = disk_total_space(ABSPATH);
+    $disk_free  = disk_free_space(ABSPATH);
+    $disk_used  = $disk_total - $disk_free;
+    $disk_percent = $disk_total > 0 ? round($disk_used / $disk_total * 100) : 0;
+
+    // CPU load (Linux only)
+    $cpu = 'Unavailable';
+    if (function_exists('sys_getloadavg')) {
+        $load = sys_getloadavg();
+        $cpu = is_array($load) ? esc_html($load[0]) : 'Unavailable';
     }
 
-    wp_add_dashboard_widget('avo_server_stats', 'Server Specs', function () use ($wpdb) {
-        // Hostname, Server IP, Local IP, Public IP
-        $hostname = gethostname() ?: ($_SERVER['SERVER_NAME'] ?? 'Unknown');
-        $server_ip = gethostbyname($hostname);
-        $local_ip = $_SERVER['SERVER_ADDR'] ?? 'Unavailable';
-        $public_ip = @file_get_contents('https://api.ipify.org');
-        if (!$public_ip || !filter_var($public_ip, FILTER_VALIDATE_IP)) $public_ip = 'Unavailable';
-
-        $uptime = 'Unavailable';
-        if (file_exists('/proc/uptime')) {
-            $seconds = floatval(file_get_contents('/proc/uptime'));
-            $days = floor($seconds / 86400);
-            $hours = floor(($seconds % 86400) / 3600);
-            $minutes = floor(($seconds % 3600) / 60);
-            $uptime = "{$days}d {$hours}h {$minutes}m";
-        } elseif (stristr(PHP_OS, 'WIN')) {
-            $uptime = 'N/A on Windows';
-        } else {
-            @exec("uptime -p", $out);
-            if (!empty($out[0])) $uptime = $out[0];
-        }
-        $software = $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown';
-        $system = php_uname('s') . ' ' . php_uname('r') . ' (' . php_uname('m') . ')';
-
-        $db_version = $wpdb->db_version();
-        $wp_version = get_bloginfo('version');
-        $sql_version = $db_version;
-
-        $used_mem = memory_get_usage();
-        $mem_limit = ini_get('memory_limit');
-        $mem_multiplier = 1;
-        if (stripos($mem_limit, 'G') !== false) $mem_multiplier = 1024*1024*1024;
-        elseif (stripos($mem_limit, 'M') !== false) $mem_multiplier = 1024*1024;
-        elseif (stripos($mem_limit, 'K') !== false) $mem_multiplier = 1024;
-        $max_mem = intval($mem_limit) * $mem_multiplier;
-
-        $disk_total = disk_total_space("/");
-        $disk_free = disk_free_space("/");
-        $disk_used = $disk_total - $disk_free;
-        $disk_percent = $disk_total > 0 ? round(($disk_used / $disk_total) * 100) : 0;
-
-        $real_ram = avo_real_memory_usage();
-        $ram_percent = 0; $ram_used = 0; $ram_total = 0;
-        if ($real_ram) {
-            $ram_used = $real_ram['used'];
-            $ram_total = $real_ram['total'];
-            $ram_percent = $ram_total > 0 ? round(($ram_used / $ram_total) * 100) : 0;
-        }
-
-        $php_memory = avo_size($used_mem) . ' / ' . avo_size($max_mem);
-
-        // CPU Load detection, AWS/Lightsail fallback warning
-        $cpu = 'Unavailable';
-        if (function_exists('sys_getloadavg')) {
-            $load = sys_getloadavg();
-            if (!empty($load)) {
-                $cpu = implode(' / ', array_map(function($l){return round($l,2);}, $load));
-            }
-        }
-        // Fallback: If not available and possibly on AWS, show custom note
-        $aws_env = getenv('AWS_EXECUTION_ENV') || stripos($software, 'Amazon') !== false;
-        if ($cpu === 'Unavailable' && $aws_env) {
-            $cpu = '<span title="This is a known AWS cloud hosting limitation.">Not available on AWS hosting</span>';
-        } elseif ($cpu === 'Unavailable') {
-            $cpu = '<span title="Not available in this environment.">Unavailable</span>';
-        }
-
-        ?>
-        <style>
-        .avo-server-specs-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 12px 16px;
-            background: #fafbfb;
-            padding: 18px 18px 12px 18px;
-            border-radius: 13px;
-            box-shadow: 0 2px 10px #eee;
-            max-width: 680px;
-            font-family: 'Menlo', 'Consolas', monospace;
-        }
-        .avo-server-specs-section { border-bottom: 1.5px solid #ececec; grid-column: 1/-1; padding-bottom:6px; margin-bottom:6px;}
-        .avo-server-specs-label {color:#234;font-weight:600;}
-        .avo-server-specs-piechart { width:40px; height:40px; display:inline-block; position:relative;}
-        .avo-server-specs-piecenter {
-            position:absolute;top:0;left:0;width:100%;height:100%;
-            display:flex;align-items:center;justify-content:center;
-            font-size:12px;font-weight:600; color:#277c35; pointer-events:none;
-        }
-        .avo-server-specs-pie-wrap { display:flex; align-items:center; gap:8px; }
-        </style>
-        <div style="font-size:18px;font-weight:bold;margin-bottom:14px;">
-            Server Specs as of: <span id="avo-live-clock"></span>
-        </div>
-        <div class="avo-server-specs-grid">
-            <!-- Top Row: Hostname/IPs | Uptime/Software/System -->
-            <div>
-                <div class="avo-server-specs-label">Hostname:</div> <?= htmlspecialchars($hostname) ?><br>
-                <div class="avo-server-specs-label">Server IP:</div> <?= htmlspecialchars($server_ip) ?><br>
-                <div class="avo-server-specs-label">Local IP:</div> <?= htmlspecialchars($local_ip) ?><br>
-                <div class="avo-server-specs-label">Public IP:</div> <?= htmlspecialchars($public_ip) ?>
-            </div>
-            <div>
-                <div class="avo-server-specs-label">Uptime:</div> <?= htmlspecialchars($uptime) ?><br>
-                <div class="avo-server-specs-label">Software:</div> <?= htmlspecialchars($software) ?><br>
-                <div class="avo-server-specs-label">System:</div> <?= htmlspecialchars($system) ?>
-            </div>
-            <div class="avo-server-specs-section"></div>
-            <!-- Next Row: Versions | PHP Memory + CPU -->
-            <div>
-                <div class="avo-server-specs-label">DB Version:</div> <?= htmlspecialchars($db_version) ?><br>
-                <div class="avo-server-specs-label">WP Version:</div> <?= htmlspecialchars($wp_version) ?><br>
-                <div class="avo-server-specs-label">SQL Version:</div> <?= htmlspecialchars($sql_version) ?>
-            </div>
-            <div>
-                <div class="avo-server-specs-label">PHP Memory:</div> <?= htmlspecialchars($php_memory) ?><br>
-                <div class="avo-server-specs-label" style="margin-top:8px;">CPU Load:</div> <?= $cpu ?>
-            </div>
-            <div class="avo-server-specs-section"></div>
-            <!-- Disk Usage Row -->
-            <div class="avo-server-specs-pie-wrap">
-                <div>
-                    <div class="avo-server-specs-label" style="margin-bottom:3px;">Disk Usage:</div>
-                    <div style="position:relative;display:inline-block;">
-                        <canvas id="avo_disk_chart" class="avo-server-specs-piechart"></canvas>
-                        <div class="avo-server-specs-piecenter" id="avo_disk_percent"><?= $disk_percent ?>%</div>
-                    </div>
+    // Start HTML output (all values escaped)
+    ?>
+    <div class="avo-server-specs-wrap">
+        <div class="avo-server-specs-title" style="font-weight:bold;font-size:18px;">Server Specs</div>
+        <div class="avo-server-specs-label">Hostname:</div> <?php echo esc_html($hostname); ?><br>
+        <div class="avo-server-specs-label">Server IP:</div> <?php echo esc_html($server_ip); ?><br>
+        <div class="avo-server-specs-label">Local IP:</div> <?php echo esc_html($local_ip); ?><br>
+        <div class="avo-server-specs-label">Public IP:</div> <?php echo esc_html($public_ip); ?><br>
+        <div class="avo-server-specs-label">Software:</div> <?php echo esc_html($software); ?><br>
+        <div class="avo-server-specs-label">System:</div> <?php echo esc_html($system); ?><br>
+        <div class="avo-server-specs-label">WP Version:</div> <?php echo esc_html($wp_version); ?><br>
+        <div class="avo-server-specs-label">PHP Memory:</div> <?php echo esc_html($php_memory); ?><br>
+        <div class="avo-server-specs-label" style="margin-top:8px;">CPU Load:</div> <?php echo esc_html($cpu); ?><br>
+        <div class="avo-server-specs-pie-wrap" style="display:flex;align-items:center;gap:36px;margin-top:20px;">
+            <div class="avo-server-specs-piechart">
+                <canvas id="avo_ram_pie" width="100" height="100"></canvas>
+                <div class="avo-server-specs-piecenter" id="avo_ram_percent"><?php echo esc_html($ram_percent); ?>%</div>
+                <div style="text-align:center;margin-top:6px;">RAM Usage</div>
+                <div style="font-size:13px;text-align:center;">
+                    <?php
+                    echo $real_ram
+                        ? esc_html(avo_size($ram_used * 1024) . ' / ' . avo_size($ram_total * 1024))
+                        : esc_html__("Unavailable", "avo-server-widget");
+                    ?>
                 </div>
-                <span style="font-size:13px; color:#333; vertical-align:top; margin-left:7px;">
-                    <?= avo_size($disk_used) . ' / ' . avo_size($disk_total) ?>
-                </span>
             </div>
-            <div></div>
-            <!-- RAM Usage Row -->
-            <div class="avo-server-specs-pie-wrap">
-                <div>
-                    <div class="avo-server-specs-label" style="margin-bottom:3px;">RAM Usage:</div>
-                    <div style="position:relative;display:inline-block;">
-                        <canvas id="avo_ram_chart" class="avo-server-specs-piechart"></canvas>
-                        <div class="avo-server-specs-piecenter" id="avo_ram_percent"><?= $ram_percent ?>%</div>
-                    </div>
+            <div class="avo-server-specs-piechart">
+                <canvas id="avo_disk_pie" width="100" height="100"></canvas>
+                <div class="avo-server-specs-piecenter" id="avo_disk_percent"><?php echo esc_html($disk_percent); ?>%</div>
+                <div style="text-align:center;margin-top:6px;">Disk Usage</div>
+                <div style="font-size:13px;text-align:center;">
+                    <?php echo esc_html(avo_size($disk_used) . ' / ' . avo_size($disk_total)); ?>
                 </div>
-                <span style="font-size:13px; color:#333; vertical-align:top; margin-left:7px;">
-                    <?= $real_ram ? (avo_size($ram_used*1024) . ' / ' . avo_size($ram_total*1024)) : "Unavailable" ?>
-                </span>
             </div>
-            <div></div>
         </div>
-        <script>
-        // Live clock - shows browser local time
-        function updateAvoLiveClock() {
-            var now = new Date();
-            var pad = n => n.toString().padStart(2, '0');
-            var ts = now.getFullYear() + '-' +
-                     pad(now.getMonth()+1) + '-' +
-                     pad(now.getDate()) + ' ' +
-                     pad(now.getHours()) + ':' +
-                     pad(now.getMinutes()) + ':' +
-                     pad(now.getSeconds());
-            document.getElementById('avo-live-clock').textContent = ts;
-        }
-        setInterval(updateAvoLiveClock, 1000);
-        updateAvoLiveClock();
-        // Pie charts
-        document.addEventListener('DOMContentLoaded', function() {
-            // Disk
-            new Chart(document.getElementById('avo_disk_chart'), {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [<?= $disk_percent ?>, <?= 100 - $disk_percent ?>],
-                        backgroundColor: ['#3aba59','#e2e2e2'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    cutout: '72%',
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    }
-                }
-            });
-            // RAM
-            new Chart(document.getElementById('avo_ram_chart'), {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [<?= $ram_percent ?>, <?= 100 - $ram_percent ?>],
-                        backgroundColor: ['#3085c8','#e2e2e2'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    cutout: '72%',
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    }
-                }
-            });
-        });
-        </script>
-        <?php
-    });
-});
+    </div>
+    <script>
+    window.avoServerWidgetData = {
+        ramPercent: <?php echo (int) $ram_percent; ?>,
+        diskPercent: <?php echo (int) $disk_percent; ?>
+    };
+    </script>
+    <?php
+}
+
+function avo_size($bytes) {
+    if ($bytes < 1024) return $bytes . ' B';
+    $units = array('KB','MB','GB','TB','PB');
+    $i = floor(log($bytes, 1024));
+    return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i-1];
+}
